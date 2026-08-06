@@ -3,7 +3,14 @@
 import { Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { CollectionSchema } from "../../schema";
-import { AdminButton, AdminCard, AdminEmptyState, AdminPage } from "../../ui";
+import {
+  AdminBadge,
+  AdminButton,
+  AdminCard,
+  AdminEmptyState,
+  AdminPage,
+  adminControl,
+} from "../../ui";
 import { ItemEditor, NewItem } from "./ItemEditor";
 
 type Row = {
@@ -69,7 +76,7 @@ export function CollectionEditor({
       )}
 
       <AdminCard
-        className="overflow-hidden"
+        flush
         footer={
           <>
             <p className="text-xs text-fg-subtle">
@@ -77,15 +84,13 @@ export function CollectionEditor({
               without deleting it.
             </p>
             {hidden > 0 && (
-              <p className="text-xs text-brass">
-                {hidden} hidden from the site
-              </p>
+              <AdminBadge tone="warning">{hidden} hidden from the site</AdminBadge>
             )}
           </>
         }
       >
         {/* Toolbar */}
-        <div className="-mx-6 -mt-6 mb-0 flex flex-wrap items-center justify-between gap-3 border-b border-line px-6 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3 sm:px-6">
           <p className="text-sm font-medium text-fg">
             {filtered.length === rows.length
               ? `${rows.length} item${rows.length === 1 ? "" : "s"}`
@@ -95,7 +100,7 @@ export function CollectionEditor({
           {rows.length > 5 && (
             <div className="relative">
               <Search
-                size={14}
+                size={15}
                 aria-hidden
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-subtle"
               />
@@ -104,14 +109,14 @@ export function CollectionEditor({
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Filter…"
                 aria-label={`Filter ${schema.label}`}
-                className="w-48 rounded-md border border-line-strong bg-canvas py-1.5 pl-8 pr-3 text-sm text-fg placeholder:text-fg-subtle/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-ring"
+                className={`${adminControl} w-52 py-2 pl-9`}
               />
             </div>
           )}
         </div>
 
         {filtered.length === 0 ? (
-          <div className="-mx-6 -mb-6 px-6 py-6">
+          <div className="px-5 py-6 sm:px-6">
             <AdminEmptyState
               title={query ? "Nothing matches that filter" : "Nothing here yet"}
               description={query ? undefined : schema.hint}
@@ -129,7 +134,7 @@ export function CollectionEditor({
             />
           </div>
         ) : (
-          <ul className="-mx-6 -mb-6 divide-y divide-line">
+          <ul className="divide-y divide-line">
             {filtered.map((row) => {
               const index = rows.findIndex((r) => r.id === row.id);
               return (

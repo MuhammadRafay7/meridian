@@ -62,13 +62,16 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Console chrome — slate rather than marine, so the admin never reads as the
-     public site. Deliberately not exposed in the theme editor: this is tool
-     chrome, not brand. */
-  --admin-canvas: #edf0f4;
-  --admin-sunken: #e0e6ec;
-  --admin-rail: #16232f;
-  --admin-rail-2: #1e2e3c;
+  /* Console chrome — a light working surface with a white rail, so the admin
+     reads as a tool rather than as a second copy of the public site. The rail
+     carries one deep-marine tile (the logo) and nothing else; colour in the
+     console means state, not decoration. Deliberately not exposed in the theme
+     editor: this is tool chrome, not brand. */
+  --admin-canvas: #f3f5f9;
+  --admin-surface: #eef1f6;
+  --admin-sunken: #e3e9f0;
+  --admin-rail: #ffffff;
+  --admin-rail-line: #e4e9f0;
 }
 
 /* Expose tokens to Tailwind's utility engine (v4 CSS config). */
@@ -108,9 +111,11 @@
      terms while the public site speaks in bg/ink terms; mapping them here means
      one set of values drives both, so re-theming the site re-themes the CMS. */
   --color-canvas: var(--admin-canvas);
-  --color-surface: var(--admin-canvas);
+  --color-surface: var(--admin-surface);
   --color-surface-raised: #ffffff;
   --color-surface-sunken: var(--admin-sunken);
+  --color-rail: var(--admin-rail);
+  --color-rail-line: var(--admin-rail-line);
   --color-fg: var(--ink);
   --color-fg-muted: var(--ink-muted);
   --color-fg-subtle: var(--ink-faint);
@@ -119,12 +124,39 @@
   --color-accent-ring: color-mix(in srgb, var(--accent) 28%, transparent);
   --color-critical: var(--danger);
 
+  /* Console figure sizes — the one type step the public scale doesn't cover. */
+  --text-figure: 1.75rem;
+  --text-figure--line-height: 2.125rem;
+  --text-figure--letter-spacing: -0.03em;
+
+  /* Console elevation. Shallow and cool: panels sit on the canvas, they don't
+     float above it. Only dialogs and the hovered rail use anything deeper. */
+  --shadow-console-xs: 0 1px 2px 0 rgb(11 27 43 / 0.05);
+  --shadow-console-sm:
+    0 1px 3px 0 rgb(11 27 43 / 0.07), 0 1px 2px -1px rgb(11 27 43 / 0.05);
+  --shadow-console-md:
+    0 4px 8px -2px rgb(11 27 43 / 0.09), 0 2px 4px -2px rgb(11 27 43 / 0.05);
+  --shadow-console-lg:
+    0 12px 20px -6px rgb(11 27 43 / 0.12), 0 4px 8px -4px rgb(11 27 43 / 0.06);
+  --shadow-console-xl:
+    0 24px 48px -12px rgb(11 27 43 / 0.24), 0 8px 16px -8px rgb(11 27 43 / 0.1);
+
   --font-sans: var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 
   --radius-brand: var(--radius);
   --radius-brand-sm: var(--radius-sm);
+}
+
+/* The console rail and its scrolling panes hide their scrollbars — a permanent
+   gutter inside a 280px rail costs more than it explains. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Base element styling lives in @layer base, and every custom class below

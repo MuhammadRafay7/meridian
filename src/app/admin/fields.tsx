@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 import { iconMap } from "@/components/icons";
 import { uploadMedia } from "./actions";
+import { adminControl } from "./ui";
 import type { FieldDef } from "./schema";
 
 /**
@@ -18,9 +19,9 @@ import type { FieldDef } from "./schema";
 function Label({ def }: { def: FieldDef }) {
   return (
     <>
-      <span className="text-sm font-medium text-ink">{def.label}</span>
+      <span className="text-sm font-medium text-fg">{def.label}</span>
       {def.hint && (
-        <span className="mt-0.5 block text-xs leading-relaxed text-ink-faint">
+        <span className="mt-0.5 block text-xs leading-relaxed text-fg-subtle">
           {def.hint}
         </span>
       )}
@@ -67,7 +68,7 @@ export function ImageField({
       <input type="hidden" name={`field.${def.name}`} value={current} />
 
       <div className="mt-2 flex flex-wrap items-start gap-4">
-        <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-brand-sm border border-line bg-bg-muted">
+        <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl border border-line bg-canvas">
           {current ? (
             <Image
               src={current}
@@ -78,7 +79,7 @@ export function ImageField({
               unoptimized={current.startsWith("http")}
             />
           ) : (
-            <span className="flex h-full items-center justify-center text-xs text-ink-faint">
+            <span className="flex h-full items-center justify-center text-xs text-fg-subtle">
               None
             </span>
           )}
@@ -90,14 +91,14 @@ export function ImageField({
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={pending}
-              className="cursor-pointer rounded-brand-sm bg-accent px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-accent-strong disabled:opacity-60"
+              className="h-9 cursor-pointer rounded-lg bg-accent px-3.5 text-xs font-medium text-fg-on-accent shadow-console-xs transition-colors hover:bg-accent-hover disabled:opacity-60"
             >
               {pending ? "Uploading…" : "Upload from device"}
             </button>
             <button
               type="button"
               onClick={() => setPicking((v) => !v)}
-              className="cursor-pointer rounded-brand-sm border border-line-strong px-3 py-2 text-xs font-medium text-ink transition-colors hover:border-accent hover:text-accent"
+              className="h-9 cursor-pointer rounded-lg border border-line bg-surface-raised px-3.5 text-xs font-medium text-fg shadow-console-xs transition-colors hover:border-accent hover:text-accent"
             >
               {picking ? "Close library" : "Choose from library"}
             </button>
@@ -105,7 +106,7 @@ export function ImageField({
               <button
                 type="button"
                 onClick={() => setCurrent("")}
-                className="cursor-pointer px-2 py-2 text-xs text-ink-faint transition-colors hover:text-danger"
+                className="h-9 cursor-pointer px-2 text-xs text-fg-subtle transition-colors hover:text-critical"
               >
                 Remove
               </button>
@@ -124,17 +125,17 @@ export function ImageField({
             value={current}
             onChange={(e) => setCurrent(e.target.value)}
             placeholder="/photos/example.jpg or https://…"
-            className="field font-mono text-xs"
+            className={`${adminControl} font-mono text-xs`}
             aria-label={`${def.label} path`}
           />
-          {error && <p className="text-xs text-danger">{error}</p>}
+          {error && <p className="text-xs text-critical">{error}</p>}
         </div>
       </div>
 
       {picking && (
-        <div className="mt-3 grid max-h-64 grid-cols-3 gap-2 overflow-y-auto rounded-brand border border-line p-2 sm:grid-cols-5">
+        <div className="no-scrollbar mt-3 grid max-h-64 grid-cols-3 gap-2 overflow-y-auto rounded-xl border border-line bg-canvas p-2 sm:grid-cols-5">
           {library.length === 0 && (
-            <p className="col-span-full p-3 text-xs text-ink-faint">
+            <p className="col-span-full p-3 text-xs text-fg-subtle">
               Nothing uploaded yet. Use “Upload from device”.
             </p>
           )}
@@ -147,7 +148,7 @@ export function ImageField({
                 setPicking(false);
               }}
               title={item.name}
-              className="relative aspect-4/3 cursor-pointer overflow-hidden rounded-brand-sm border border-line hover:border-accent"
+              className="relative aspect-4/3 cursor-pointer overflow-hidden rounded-lg border border-line transition-colors hover:border-accent"
             >
               <Image
                 src={item.url}
@@ -175,7 +176,7 @@ export function IconField({ def, value }: { def: FieldDef; value: string }) {
     <div>
       <Label def={def} />
       <input type="hidden" name={`field.${def.name}`} value={current} />
-      <div className="mt-2 grid grid-cols-8 gap-1.5 rounded-brand border border-line p-2 sm:grid-cols-12">
+      <div className="mt-2 grid grid-cols-8 gap-1.5 rounded-xl border border-line bg-canvas p-2 sm:grid-cols-12">
         {names.map((name) => {
           const Icon = iconMap[name];
           const active = current === name;
@@ -186,10 +187,10 @@ export function IconField({ def, value }: { def: FieldDef; value: string }) {
               title={name.replace("Icon", "")}
               onClick={() => setCurrent(name)}
               aria-pressed={active}
-              className={`flex aspect-square cursor-pointer items-center justify-center rounded-brand-sm border transition-colors ${
+              className={`flex aspect-square cursor-pointer items-center justify-center rounded-lg border transition-colors ${
                 active
                   ? "border-accent bg-accent-wash text-accent"
-                  : "border-transparent text-ink-muted hover:border-line hover:text-ink"
+                  : "border-transparent text-fg-muted hover:border-line hover:bg-surface-raised hover:text-fg"
               }`}
             >
               <Icon width={18} height={18} />
@@ -212,7 +213,7 @@ export function ListField({ def, value }: { def: FieldDef; value: string[] }) {
         rows={Math.min(Math.max(value.length + 2, 4), 12)}
         defaultValue={value.join("\n")}
         placeholder="One per line"
-        className="field mt-2 text-sm leading-relaxed"
+        className={`${adminControl} mt-2 leading-relaxed`}
       />
     </label>
   );
@@ -235,14 +236,14 @@ export function PairsField({
   return (
     <label className="block">
       <Label def={def} />
-      <span className="mt-0.5 block text-xs text-ink-faint">
+      <span className="mt-0.5 block text-xs text-fg-subtle">
         One per line, as <code className="font-mono">{a} | {b}</code>
       </span>
       <textarea
         name={`field.${def.name}`}
         rows={Math.min(Math.max(value.length + 2, 3), 10)}
         defaultValue={lines}
-        className="field mt-2 font-mono text-[0.8125rem] leading-relaxed"
+        className={`${adminControl} mt-2 font-mono text-[0.8125rem] leading-relaxed`}
       />
     </label>
   );
@@ -263,7 +264,7 @@ export function SimpleField({
     return (
       <label className="block">
         <Label def={def} />
-        <select name={name} defaultValue={String(value ?? "")} className="field mt-2">
+        <select name={name} defaultValue={String(value ?? "")} className={`${adminControl} mt-2 appearance-none`}>
           {(def.options ?? []).map((option) => (
             <option key={option} value={option}>
               {option === "" ? "— none —" : option}
@@ -282,7 +283,7 @@ export function SimpleField({
           name={name}
           rows={def.rows ?? 4}
           defaultValue={String(value ?? "")}
-          className="field mt-2 text-sm leading-relaxed"
+          className={`${adminControl} mt-2 leading-relaxed`}
         />
       </label>
     );
@@ -296,7 +297,7 @@ export function SimpleField({
         type={def.type === "number" ? "number" : "text"}
         step={def.type === "number" ? "any" : undefined}
         defaultValue={String(value ?? "")}
-        className="field mt-2"
+        className={`${adminControl} mt-2`}
       />
     </label>
   );

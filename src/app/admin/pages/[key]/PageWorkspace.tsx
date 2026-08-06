@@ -4,7 +4,7 @@ import { Layers, Link2, Settings2, Type } from "lucide-react";
 import { useState } from "react";
 import type { AdminPageDef } from "../../page-map";
 import type { CollectionSchema } from "../../schema";
-import { AdminCard, AdminEmptyState } from "../../ui";
+import { AdminCard, AdminEmptyState, AdminTabs } from "../../ui";
 import { ItemEditor, NewItem } from "../../content/[collection]/ItemEditor";
 import { PageSettings } from "./PageSettings";
 import { SectionStack } from "./SectionStack";
@@ -58,6 +58,7 @@ function Block({
     <AdminCard
       title={schema.label}
       description={where}
+      flush
       footer={
         <>
           <button
@@ -76,7 +77,7 @@ function Block({
       }
     >
       {adding && (
-        <div className="mb-4">
+        <div className="border-b border-line px-5 py-5 sm:px-6">
           <NewItem
             collection={collection}
             schema={schema}
@@ -88,9 +89,11 @@ function Block({
       )}
 
       {mine.length === 0 ? (
-        <AdminEmptyState title="Nothing here yet" description={schema.hint} />
+        <div className="px-5 py-5 sm:px-6">
+          <AdminEmptyState title="Nothing here yet" description={schema.hint} />
+        </div>
       ) : (
-        <ul className="-mx-5 -my-5 divide-y divide-line">
+        <ul className="divide-y divide-line">
           {mine.map((row, i) => (
             <ItemEditor
               key={row.id}
@@ -136,46 +139,36 @@ export function PageWorkspace({
     "content" | "copy" | "sections" | "settings"
   >("content");
 
+  // Content is what changes most, so it leads.
   const tabs = [
-    { id: "content" as const, label: "Content", icon: Layers, count: def.blocks.length },
-    { id: "copy" as const, label: "Headings", icon: Type, count: copyRows.length },
-    { id: "sections" as const, label: "Sections", icon: Link2, count: sections.length },
-    { id: "settings" as const, label: "Page settings", icon: Settings2 },
+    {
+      id: "content" as const,
+      label: "Content",
+      icon: <Layers size={15} aria-hidden />,
+      count: def.blocks.length,
+    },
+    {
+      id: "copy" as const,
+      label: "Headings",
+      icon: <Type size={15} aria-hidden />,
+      count: copyRows.length,
+    },
+    {
+      id: "sections" as const,
+      label: "Sections",
+      icon: <Link2 size={15} aria-hidden />,
+      count: sections.length,
+    },
+    {
+      id: "settings" as const,
+      label: "Page settings",
+      icon: <Settings2 size={15} aria-hidden />,
+    },
   ];
 
   return (
     <>
-      {/* Sub-tabs: content is what changes most, so it leads. */}
-      <div className="flex flex-wrap gap-1 border-b border-line">
-        {tabs.map((t) => {
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              aria-current={active ? "true" : undefined}
-              className={`-mb-px flex cursor-pointer items-center gap-2 border-b-2 px-3.5 py-2.5 text-sm font-medium transition-colors ${
-                active
-                  ? "border-accent text-accent"
-                  : "border-transparent text-fg-muted hover:text-fg"
-              }`}
-            >
-              <t.icon size={15} aria-hidden />
-              {t.label}
-              {typeof t.count === "number" && (
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[0.6875rem] ${
-                    active ? "bg-accent-wash text-accent" : "bg-surface-sunken text-fg-subtle"
-                  }`}
-                >
-                  {t.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <AdminTabs tabs={tabs} value={tab} onChange={setTab} />
 
       {tab === "content" &&
         def.blocks.map((block) => {
@@ -198,11 +191,14 @@ export function PageWorkspace({
         <AdminCard
           title="Section headings"
           description="The eyebrow, heading and lead paragraph above each block on this page. Clearing a heading removes it from the page."
+          flush
         >
           {copyRows.length === 0 ? (
-            <AdminEmptyState title="No headings recorded for this page" />
+            <div className="px-5 py-5 sm:px-6">
+              <AdminEmptyState title="No headings recorded for this page" />
+            </div>
           ) : (
-            <ul className="-mx-5 -my-5 divide-y divide-line">
+            <ul className="divide-y divide-line">
               {copyRows.map((row, i) => (
                 <ItemEditor
                   key={row.id}

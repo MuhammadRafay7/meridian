@@ -2,7 +2,7 @@
 
 import { ChevronDown, ChevronUp, Eye, EyeOff, Trash2 } from "lucide-react";
 import { addSection, deleteSection, moveSection, toggleSection } from "../../actions";
-import { AdminCard } from "../../ui";
+import { AdminBadge, AdminCard, adminControl } from "../../ui";
 import { SECTION_TYPES } from "../section-types";
 
 type Section = {
@@ -30,13 +30,14 @@ export function SectionStack({
     <AdminCard
       title="Sections"
       description="The blocks stacked down this page, in order."
+      flush
       footer={
         <form action={addSection} className="flex flex-wrap items-center gap-2">
           <input type="hidden" name="page_slug" value={pageSlug} />
           <select
             name="type"
             aria-label="Section to add"
-            className="h-9 min-w-56 rounded-md border border-line-strong bg-surface-raised px-3 text-sm text-fg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-ring"
+            className={`${adminControl} h-11 w-auto min-w-56 appearance-none py-0`}
           >
             {Object.entries(SECTION_TYPES).map(([value, label]) => (
               <option key={value} value={value}>
@@ -46,7 +47,7 @@ export function SectionStack({
           </select>
           <button
             type="submit"
-            className="h-9 cursor-pointer rounded-md border border-line-strong px-3 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent"
+            className="h-11 cursor-pointer rounded-lg border border-line bg-surface-raised px-4 text-sm font-medium text-fg shadow-console-xs transition-colors hover:border-accent hover:text-accent"
           >
             Add section
           </button>
@@ -54,24 +55,27 @@ export function SectionStack({
       }
     >
       {sections.length === 0 ? (
-        <p className="py-6 text-center text-sm text-fg-muted">
+        <p className="px-6 py-10 text-center text-sm text-fg-muted">
           No sections yet — add one below.
         </p>
       ) : (
-        <ul className="-mx-5 -my-5 divide-y divide-line">
+        <ul className="divide-y divide-line">
           {sections.map((section, i) => (
-            <li key={section.id} className="flex items-center gap-3 px-5 py-2.5">
+            <li
+              key={section.id}
+              className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-canvas/60 sm:px-6"
+            >
               <span className="w-6 shrink-0 font-mono text-xs text-fg-subtle">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm text-fg">
-                  {SECTION_TYPES[section.type] ?? section.type}
-                </span>
-                {!section.published && (
-                  <span className="text-xs text-brass">Hidden from the site</span>
-                )}
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
+                {SECTION_TYPES[section.type] ?? section.type}
               </span>
+              {!section.published && (
+                <AdminBadge tone="warning" className="hidden sm:inline-flex">
+                  Hidden
+                </AdminBadge>
+              )}
 
               <div className="flex shrink-0 items-center gap-1">
                 {(["up", "down"] as const).map((direction) => (
@@ -83,7 +87,7 @@ export function SectionStack({
                       type="submit"
                       title={direction === "up" ? "Move up" : "Move down"}
                       disabled={direction === "up" ? i === 0 : i === sections.length - 1}
-                      className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-fg-subtle transition-colors hover:bg-surface-sunken hover:text-fg disabled:cursor-not-allowed disabled:opacity-25"
+                      className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-fg-subtle transition-colors hover:bg-surface-sunken hover:text-fg disabled:cursor-not-allowed disabled:opacity-25"
                     >
                       {direction === "up" ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
@@ -95,7 +99,7 @@ export function SectionStack({
                   <button
                     type="submit"
                     title={section.published ? "Hide" : "Show"}
-                    className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-fg-subtle transition-colors hover:bg-surface-sunken hover:text-fg"
+                    className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-fg-subtle transition-colors hover:bg-surface-sunken hover:text-fg"
                   >
                     {section.published ? <Eye size={14} /> : <EyeOff size={14} />}
                   </button>
@@ -105,7 +109,7 @@ export function SectionStack({
                   <button
                     type="submit"
                     title="Remove section"
-                    className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-fg-subtle transition-colors hover:bg-critical/10 hover:text-critical"
+                    className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-fg-subtle transition-colors hover:bg-critical/10 hover:text-critical"
                   >
                     <Trash2 size={14} />
                   </button>

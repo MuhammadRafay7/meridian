@@ -3,7 +3,13 @@
 import { Palette } from "lucide-react";
 import { useActionState, useState } from "react";
 import { saveTheme, type ActionResult } from "../actions";
-import { AdminActionBar, AdminButton, AdminCard, AdminStatus } from "../ui";
+import {
+  AdminActionBar,
+  AdminButton,
+  AdminCard,
+  AdminStatus,
+  adminControl,
+} from "../ui";
 
 /** A single token: swatch, name, and the raw value. */
 function TokenRow({ name, value }: { name: string; value: string }) {
@@ -18,12 +24,18 @@ function TokenRow({ name, value }: { name: string; value: string }) {
           value={current}
           onChange={(e) => setCurrent(e.target.value)}
           aria-label={`${name} colour picker`}
-          className="h-8 w-8 shrink-0 cursor-pointer rounded border border-line bg-transparent p-0.5"
+          className="h-9 w-9 shrink-0 cursor-pointer rounded-lg border border-line bg-transparent p-1"
         />
       ) : (
-        <span aria-hidden className="h-8 w-8 shrink-0 rounded border border-dashed border-line" />
+        <span
+          aria-hidden
+          className="h-9 w-9 shrink-0 rounded-lg border border-dashed border-line-strong"
+        />
       )}
-      <label htmlFor={`t-${name}`} className="w-44 shrink-0 font-mono text-xs text-fg-muted">
+      <label
+        htmlFor={`t-${name}`}
+        className="w-44 shrink-0 font-mono text-xs text-fg-muted"
+      >
         --{name}
       </label>
       <input
@@ -31,7 +43,7 @@ function TokenRow({ name, value }: { name: string; value: string }) {
         name={name}
         value={current}
         onChange={(e) => setCurrent(e.target.value)}
-        className="w-full rounded-md border border-line-strong bg-canvas px-3 py-2 font-mono text-xs text-fg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-ring"
+        className={`${adminControl} py-2 font-mono text-xs`}
       />
     </div>
   );

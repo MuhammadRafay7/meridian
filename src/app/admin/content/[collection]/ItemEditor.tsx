@@ -2,7 +2,6 @@
 
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useActionState, useState } from "react";
-import { cn } from "@/lib/cn";
 import {
   deleteContentItem,
   moveContentItem,
@@ -11,6 +10,7 @@ import {
 } from "../../actions";
 import { ImageField, IconField, ListField, PairsField, SimpleField } from "../../fields";
 import type { CollectionSchema, FieldDef } from "../../schema";
+import { AdminBadge, AdminButton } from "../../ui";
 
 type Row = Record<string, unknown>;
 type Media = { name: string; url: string };
@@ -93,7 +93,7 @@ function FormBody({
       </div>
 
       {Object.keys(rest).length > 0 && (
-        <p className="mt-5 rounded-brand-sm border border-line bg-bg-subtle px-3 py-2 text-xs text-fg-subtle">
+        <p className="mt-5 rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-xs text-fg-subtle">
           Also stored on this item and kept unchanged:{" "}
           <span className="font-mono">{Object.keys(rest).join(", ")}</span>
         </p>
@@ -140,7 +140,7 @@ export function ItemEditor({
 
   return (
     <li className={open ? "bg-canvas" : "transition-colors hover:bg-canvas/60"}>
-      <div className="flex items-center gap-4 px-6 py-3">
+      <div className="flex items-center gap-4 px-5 py-3 sm:px-6">
         <span className="w-6 shrink-0 font-mono text-xs text-fg-subtle">
           {String(index + 1).padStart(2, "0")}
         </span>
@@ -150,12 +150,12 @@ export function ItemEditor({
           <img
             src={thumb}
             alt=""
-            className="h-11 w-16 shrink-0 rounded-md border border-line object-cover"
+            className="h-11 w-16 shrink-0 rounded-lg border border-line object-cover"
           />
         ) : (
           <span
             aria-hidden
-            className="grid h-11 w-16 shrink-0 place-items-center rounded-md border border-dashed border-line text-[0.625rem] text-fg-subtle"
+            className="grid h-11 w-16 shrink-0 place-items-center rounded-lg border border-dashed border-line-strong text-[0.625rem] text-fg-subtle"
           >
             {reference || "—"}
           </span>
@@ -170,7 +170,7 @@ export function ItemEditor({
           <span className="flex items-center gap-2">
             <span className="truncate text-sm font-medium text-fg">{title}</span>
             {reference && thumb && (
-              <span className="shrink-0 rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-[0.625rem] text-fg-subtle">
+              <span className="shrink-0 rounded-md bg-canvas px-1.5 py-0.5 font-mono text-[0.625rem] text-fg-subtle">
                 {reference}
               </span>
             )}
@@ -182,16 +182,12 @@ export function ItemEditor({
           )}
         </button>
 
-        <span
-          className={cn(
-            "hidden shrink-0 rounded-full px-2.5 py-1 text-[0.6875rem] font-medium sm:block",
-            published
-              ? "bg-positive/10 text-positive"
-              : "bg-brass/15 text-brass",
-          )}
+        <AdminBadge
+          tone={published ? "positive" : "warning"}
+          className="hidden shrink-0 sm:inline-flex"
         >
           {published ? "Visible" : "Hidden"}
-        </span>
+        </AdminBadge>
 
         <div className="flex shrink-0 items-center gap-1">
           {(["up", "down"] as const).map((direction) => (
@@ -203,7 +199,7 @@ export function ItemEditor({
                 type="submit"
                 title={direction === "up" ? "Move up" : "Move down"}
                 disabled={direction === "up" ? isFirst : isLast}
-                className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-fg-subtle transition-colors hover:bg-surface-sunken hover:text-fg disabled:cursor-not-allowed disabled:opacity-25"
+                className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-fg-subtle transition-colors hover:bg-surface-sunken hover:text-fg disabled:cursor-not-allowed disabled:opacity-25"
               >
                 {direction === "up" ? (
                   <ChevronUp size={14} aria-hidden />
@@ -213,24 +209,25 @@ export function ItemEditor({
               </button>
             </form>
           ))}
-          <button
-            type="button"
+          <AdminButton
+            variant="secondary"
+            size="sm"
             onClick={() => setOpen((v) => !v)}
-            className="ml-1 cursor-pointer rounded-md border border-line-strong px-2.5 py-1 text-xs font-medium text-fg transition-colors hover:border-accent hover:text-accent"
+            className="ml-1"
           >
             {open ? "Close" : "Edit"}
-          </button>
+          </AdminButton>
         </div>
       </div>
 
       {open && (
-        <div className="border-t border-line bg-surface-raised px-6 py-5">
+        <div className="border-t border-line bg-surface-raised px-5 py-6 sm:px-6">
           <form action={formAction}>
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="collection" value={collection} />
             <FormBody schema={schema} data={data} library={library} />
 
-            <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line pt-4">
+            <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line pt-5">
               <label className="flex cursor-pointer items-center gap-2 text-sm text-fg-muted">
                 <input
                   type="checkbox"
@@ -240,12 +237,7 @@ export function ItemEditor({
                 />
                 Visible on site
               </label>
-              <button
-                type="submit"
-                className="cursor-pointer rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
-              >
-                Save changes
-              </button>
+              <AdminButton type="submit">Save changes</AdminButton>
               {state && (
                 <span
                   role="status"
@@ -257,12 +249,12 @@ export function ItemEditor({
             </div>
           </form>
 
-          <form action={deleteContentItem} className="mt-4 border-t border-line pt-3">
+          <form action={deleteContentItem} className="mt-5 border-t border-line pt-4">
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="collection" value={collection} />
             <button
               type="submit"
-              className="cursor-pointer text-xs text-fg-subtle transition-colors hover:text-danger"
+              className="cursor-pointer text-xs text-fg-subtle transition-colors hover:text-critical"
             >
               Delete this item permanently
             </button>
@@ -292,14 +284,16 @@ export function NewItem({
   );
 
   return (
-    <div className="rounded-xl border border-accent/40 bg-surface-raised p-5 shadow-sm">
-      <h2 className="text-sm font-medium text-fg">New item</h2>
-      <form action={formAction} className="mt-4">
+    <div className="rounded-2xl border border-accent/35 bg-surface-raised shadow-console-sm">
+      <h2 className="border-b border-line px-5 py-4 text-sm font-semibold text-fg sm:px-6">
+        New item
+      </h2>
+      <form action={formAction} className="px-5 py-5 sm:px-6">
         <input type="hidden" name="collection" value={collection} />
         <input type="hidden" name="position" value={position} />
         <FormBody schema={schema} data={{}} library={library} />
 
-        <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line pt-4">
+        <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line pt-5">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-fg-muted">
             <input
               type="checkbox"
@@ -309,19 +303,10 @@ export function NewItem({
             />
             Visible on site
           </label>
-          <button
-            type="submit"
-            className="cursor-pointer rounded-brand-sm bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-strong"
-          >
-            Add item
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="cursor-pointer text-sm text-fg-muted hover:text-fg"
-          >
+          <AdminButton type="submit">Add item</AdminButton>
+          <AdminButton type="button" variant="ghost" onClick={onCancel}>
             Cancel
-          </button>
+          </AdminButton>
           {state && (
             <span
               role="status"

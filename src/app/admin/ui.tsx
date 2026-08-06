@@ -1,6 +1,8 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronRight, Loader2, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import {
   useEffect,
@@ -12,13 +14,19 @@ import {
 } from "react";
 
 import { cn } from "@/lib/cn";
+import { adminNav } from "./nav";
 
 /**
  * Admin UI kit.
  *
- * Ported from the sibling ostenmark project, which had already solved this
- * problem well. The primitives use the same semantic tokens as the public site
- * (mapped in globals.css), so the admin inherits the design system rather than
+ * The console is built from four shapes and nothing else: a page header, a
+ * card, a control, and a button. Cards are white on a cool grey canvas with a
+ * hairline border and almost no shadow — depth is reserved for things that
+ * genuinely float (dialogs, menus, the hovered rail), so when something lifts
+ * off the page it means something.
+ *
+ * The primitives use the same semantic tokens as the public site (mapped in
+ * globals.css), so the admin inherits the design system rather than
  * approximating it — re-theming the site re-themes the CMS.
  *
  * Copy here is plain English: this is a tool, and a tool should say
@@ -28,6 +36,38 @@ import { cn } from "@/lib/cn";
 /* -------------------------------------------------------------------------- */
 /* Page scaffolding                                                           */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Trail back to the console root, derived from the route rather than passed in
+ * by every page — nav is the only place that knows which group a route is in,
+ * and it already knows.
+ */
+function Breadcrumb({ title }: { title: string }) {
+  const pathname = usePathname();
+  const group = adminNav.find((g) => g.links.some((l) => l.href === pathname));
+
+  return (
+    <nav aria-label="Breadcrumb">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-fg-subtle">
+        <li>
+          <Link href="/admin" className="transition-colors hover:text-accent">
+            Console
+          </Link>
+        </li>
+        {group ? (
+          <li className="flex items-center gap-1.5">
+            <ChevronRight size={13} aria-hidden />
+            {group.title}
+          </li>
+        ) : null}
+        <li className="flex items-center gap-1.5 text-fg-muted">
+          <ChevronRight size={13} aria-hidden />
+          <span aria-current="page">{title}</span>
+        </li>
+      </ol>
+    </nav>
+  );
+}
 
 export function AdminPage({
   title,
@@ -44,42 +84,47 @@ export function AdminPage({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto w-full max-w-6xl">
-      <header className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto w-full max-w-7xl">
+      <header className="flex flex-col gap-4 pb-6 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
-          <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-tight text-fg">
+          <Breadcrumb title={title} />
+          <h1 className="mt-2 font-display text-2xl font-semibold leading-tight tracking-tight text-fg sm:text-[1.75rem]">
             {title}
           </h1>
           {description ? (
-            <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">
+            <p className="mt-2 text-sm leading-relaxed text-fg-muted">
               {description}
             </p>
           ) : null}
         </div>
-        {actions ? <div className="flex shrink-0 gap-2">{actions}</div> : null}
+        {actions ? (
+          <div className="flex shrink-0 flex-wrap gap-2 lg:pt-6">{actions}</div>
+        ) : null}
       </header>
 
       {aside ? (
-        <div className="grid items-start gap-6 pb-16 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="flex min-w-0 flex-col gap-5">{children}</div>
-          <div className="flex flex-col gap-5 lg:sticky lg:top-6">{aside}</div>
+        <div className="grid items-start gap-6 pb-20 lg:grid-cols-[minmax(0,1fr)_21rem]">
+          <div className="flex min-w-0 flex-col gap-6">{children}</div>
+          <div className="flex flex-col gap-6 lg:sticky lg:top-22">{aside}</div>
         </div>
       ) : (
-        <div className="flex flex-col gap-5 pb-16">{children}</div>
+        <div className="flex flex-col gap-6 pb-20">{children}</div>
       )}
     </div>
   );
 }
 
 /**
- * Sticky action bar pinned to the bottom of the content column.
+ * Floating action bar pinned to the bottom of the content column.
  *
  * Long forms scroll past their own save button; this keeps it reachable and
- * puts the result of the last save next to it rather than somewhere above.
+ * puts the result of the last save next to it rather than somewhere above. It
+ * floats as a card rather than bleeding to the window edges, so it reads as
+ * belonging to the form it follows.
  */
 export function AdminActionBar({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-0 z-20 -mx-4 mt-1 flex flex-wrap items-center gap-4 border-t border-line bg-canvas/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+    <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-surface-raised/95 px-4 py-3 shadow-console-lg backdrop-blur-md sm:px-5">
       {children}
     </div>
   );
@@ -90,6 +135,8 @@ export function AdminCard({
   description,
   icon,
   footer,
+  /** Drops body padding so lists and tables can sit edge to edge. */
+  flush = false,
   children,
   className,
 }: {
@@ -101,36 +148,42 @@ export function AdminCard({
    */
   icon?: ReactNode;
   footer?: ReactNode;
+  flush?: boolean;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-xl border border-line bg-surface-raised shadow-[0_1px_2px_rgba(11,27,43,0.04)]",
+        "overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-console-xs",
         className,
       )}
     >
       {title ? (
-        <header className="flex items-start gap-3 border-b border-line bg-canvas/60 px-5 py-3.5">
+        <header className="flex items-start gap-3.5 border-b border-line px-5 py-4 sm:px-6">
           {icon ? (
-            <span aria-hidden className="mt-0.5 shrink-0 text-accent">
+            <span
+              aria-hidden
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-wash text-accent"
+            >
               {icon}
             </span>
           ) : null}
-          <div>
+          <div className="min-w-0">
             <h2 className="text-sm font-semibold text-fg">{title}</h2>
             {description ? (
-              <p className="mt-1 text-sm text-fg-muted">{description}</p>
+              <p className="mt-1 text-sm leading-relaxed text-fg-muted">
+                {description}
+              </p>
             ) : null}
           </div>
         </header>
       ) : null}
 
-      <div className="px-5 py-5">{children}</div>
+      <div className={cn(!flush && "px-5 py-5 sm:px-6")}>{children}</div>
 
       {footer ? (
-        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-line bg-canvas/60 px-5 py-3">
+        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-line bg-canvas/70 px-5 py-3.5 sm:px-6">
           {footer}
         </footer>
       ) : null}
@@ -143,15 +196,119 @@ export function AdminGrid({ children }: { children: ReactNode }) {
   return <div className="grid gap-5 sm:grid-cols-2">{children}</div>;
 }
 
+/**
+ * Figure tile — a count, and what it counts.
+ *
+ * `tone` is state, not decoration: `alert` is for a number that means something
+ * needs attention (content hidden from the public site), so it is the only one
+ * that colours the figure.
+ */
+export function AdminMetric({
+  label,
+  value,
+  icon,
+  hint,
+  tone = "neutral",
+}: {
+  label: string;
+  value: number | string;
+  icon?: ReactNode;
+  hint?: string;
+  tone?: "neutral" | "alert";
+}) {
+  const alert = tone === "alert" && value !== 0;
+
+  return (
+    <div className="rounded-2xl border border-line bg-surface-raised p-5 shadow-console-xs">
+      {icon ? (
+        <span
+          aria-hidden
+          className={cn(
+            "grid h-11 w-11 place-items-center rounded-xl",
+            alert ? "bg-brass-wash text-brass" : "bg-canvas text-fg",
+          )}
+        >
+          {icon}
+        </span>
+      ) : null}
+      <p
+        className={cn(
+          "mt-4 font-display text-figure font-semibold tabular-nums",
+          alert ? "text-brass" : "text-fg",
+        )}
+      >
+        {value}
+      </p>
+      <p className="mt-1 text-sm font-medium text-fg-muted">{label}</p>
+      {hint ? <p className="mt-0.5 text-xs text-fg-subtle">{hint}</p> : null}
+    </div>
+  );
+}
+
+/** Segmented control for switching panels within one page. */
+export function AdminTabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+}: {
+  tabs: { id: T; label: string; icon?: ReactNode; count?: number }[];
+  value: T;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      className="flex w-full gap-1 overflow-x-auto rounded-xl border border-line bg-surface-raised p-1 shadow-console-xs"
+    >
+      {tabs.map((tab) => {
+        const active = tab.id === value;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(tab.id)}
+            className={cn(
+              "flex flex-1 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+              active
+                ? "bg-accent-wash text-accent"
+                : "text-fg-muted hover:bg-canvas hover:text-fg",
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+            {typeof tab.count === "number" && (
+              <span
+                className={cn(
+                  "rounded-md px-1.5 py-0.5 text-[0.6875rem] tabular-nums",
+                  active ? "bg-accent/12 text-accent" : "bg-canvas text-fg-subtle",
+                )}
+              >
+                {tab.count}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* Form controls                                                              */
 /* -------------------------------------------------------------------------- */
 
-const controlClasses =
-  "w-full rounded-md border border-line-strong bg-surface-raised px-3 py-2 text-sm text-fg " +
-  "placeholder:text-fg-subtle/70 transition-colors " +
-  "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-ring " +
-  "disabled:opacity-60";
+/**
+ * The console control surface, exported so the hand-rolled inputs elsewhere in
+ * the admin (typed fields, filters, token editors) look like the ones this kit
+ * builds instead of drifting from them.
+ */
+export const adminControl =
+  "w-full rounded-lg border border-line bg-surface-raised px-3.5 py-2.5 text-sm text-fg " +
+  "shadow-console-xs transition-colors placeholder:text-fg-subtle " +
+  "focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/10 " +
+  "disabled:cursor-not-allowed disabled:bg-canvas disabled:opacity-60";
 
 interface FieldChrome {
   label: string;
@@ -164,6 +321,11 @@ interface FieldChrome {
 /**
  * Wraps a control with a real `<label>` and wires up hint/error descriptions.
  * Every admin field goes through this, so none can ship unlabelled.
+ *
+ * The hint sits *below* the control rather than above it. Two fields side by
+ * side in `AdminGrid` where only one has a hint would otherwise put their
+ * inputs at different heights, and a form whose controls don't line up reads
+ * as broken before it reads as helpful.
  */
 function FieldShell({
   label,
@@ -178,12 +340,12 @@ function FieldShell({
       <label htmlFor={id} className="text-sm font-medium text-fg">
         {label}
       </label>
+      {children}
       {hint ? (
-        <p id={`${id}-hint`} className="text-xs text-fg-subtle">
+        <p id={`${id}-hint`} className="text-xs leading-relaxed text-fg-subtle">
           {hint}
         </p>
       ) : null}
-      {children}
       {error ? (
         <p id={`${id}-error`} className="text-xs text-critical">
           {error}
@@ -207,7 +369,7 @@ export function AdminInput({
         id={id}
         aria-describedby={cn(hint && `${id}-hint`, error && `${id}-error`) || undefined}
         aria-invalid={error ? true : undefined}
-        className={cn(controlClasses, error && "border-critical")}
+        className={cn(adminControl, error && "border-critical")}
         {...rest}
       />
     </FieldShell>
@@ -229,7 +391,7 @@ export function AdminTextarea({
         id={id}
         rows={rows}
         aria-describedby={cn(hint && `${id}-hint`) || undefined}
-        className={cn(controlClasses, "resize-y leading-relaxed", error && "border-critical")}
+        className={cn(adminControl, "resize-y leading-relaxed", error && "border-critical")}
         {...rest}
       />
     </FieldShell>
@@ -250,7 +412,7 @@ export function AdminSelect({
   const id = useId();
   return (
     <FieldShell label={label} hint={hint} error={error} wide={wide} id={id}>
-      <select id={id} className={cn(controlClasses, "appearance-none")} {...rest}>
+      <select id={id} className={cn(adminControl, "appearance-none")} {...rest}>
         {options.map((option) => (
           <option key={option} value={option}>
             {option}
@@ -276,15 +438,15 @@ export function AdminCheckbox({
       <input
         id={id}
         type="checkbox"
-        className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent)]"
+        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[var(--accent)]"
         {...rest}
       />
       <div>
-        <label htmlFor={id} className="text-sm font-medium text-fg">
+        <label htmlFor={id} className="cursor-pointer text-sm font-medium text-fg">
           {label}
         </label>
         {description ? (
-          <p className="mt-0.5 text-xs text-fg-muted">{description}</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-fg-muted">{description}</p>
         ) : null}
       </div>
     </div>
@@ -292,17 +454,19 @@ export function AdminCheckbox({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Buttons                                                                    */
+/* Buttons and badges                                                         */
 /* -------------------------------------------------------------------------- */
 
 type AdminButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const buttonVariants: Record<AdminButtonVariant, string> = {
-  primary: "bg-accent text-fg-on-accent hover:bg-accent-hover shadow-sm",
+  primary:
+    "bg-accent text-fg-on-accent shadow-console-xs hover:bg-accent-hover focus-visible:ring-3 focus-visible:ring-accent/25",
   secondary:
-    "border border-line-strong bg-surface-raised text-fg hover:border-fg-subtle hover:bg-surface",
+    "border border-line bg-surface-raised text-fg shadow-console-xs hover:border-line-strong hover:bg-canvas",
   ghost: "text-fg-muted hover:bg-surface hover:text-fg",
-  danger: "border border-critical/40 text-critical hover:bg-critical/10",
+  danger:
+    "border border-critical/35 bg-surface-raised text-critical shadow-console-xs hover:bg-critical/8",
 };
 
 export function AdminButton({
@@ -328,9 +492,9 @@ export function AdminButton({
       // Communicates the pending state to assistive tech, not just visually.
       aria-busy={busy || undefined}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors",
-        "disabled:pointer-events-none disabled:opacity-55",
-        size === "sm" ? "h-9 px-3 text-sm" : "h-10 px-4 text-sm",
+        "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium transition-colors",
+        "focus-visible:outline-none disabled:pointer-events-none disabled:opacity-55",
+        size === "sm" ? "h-9 px-3.5 text-sm" : "h-11 px-4.5 text-sm",
         buttonVariants[variant],
         className,
       )}
@@ -339,6 +503,39 @@ export function AdminButton({
       {busy ? <Loader2 size={15} aria-hidden className="animate-spin" /> : null}
       {children}
     </button>
+  );
+}
+
+type BadgeTone = "neutral" | "accent" | "positive" | "warning" | "critical";
+
+const badgeTones: Record<BadgeTone, string> = {
+  neutral: "bg-canvas text-fg-muted",
+  accent: "bg-accent-wash text-accent",
+  positive: "bg-positive/10 text-positive",
+  warning: "bg-brass-wash text-brass",
+  critical: "bg-critical/10 text-critical",
+};
+
+/** Compact state marker — visible, hidden, shared, and so on. */
+export function AdminBadge({
+  tone = "neutral",
+  children,
+  className,
+}: {
+  tone?: BadgeTone;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-medium",
+        badgeTones[tone],
+        className,
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -394,10 +591,12 @@ export function AdminEmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-dashed border-line-strong px-6 py-14 text-center">
+    <div className="rounded-xl border border-dashed border-line-strong bg-canvas/50 px-6 py-14 text-center">
       <p className="text-sm font-medium text-fg">{title}</p>
       {description ? (
-        <p className="mx-auto mt-2 max-w-sm text-sm text-fg-muted">{description}</p>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-fg-muted">
+          {description}
+        </p>
       ) : null}
       {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
     </div>
@@ -433,7 +632,7 @@ const noopSubscribe = () => () => {};
  * plus an effect that immediately sets it true) causes a second render pass on
  * every mount and is what the set-state-in-effect rule warns about.
  */
-function Portal({ children }: { children: ReactNode }) {
+export function Portal({ children }: { children: ReactNode }) {
   const mounted = useSyncExternalStore(
     noopSubscribe,
     () => true,
@@ -522,7 +721,7 @@ export function AdminDialog({
           // Decorative backdrop; the dialog below owns the semantics.
           aria-hidden
           onClick={onClose}
-          className="absolute inset-0 bg-gray-950/70 backdrop-blur-sm"
+          className="absolute inset-0 bg-deep/60 backdrop-blur-sm"
         />
         <div
           ref={panelRef}
@@ -530,17 +729,21 @@ export function AdminDialog({
           aria-modal="true"
           aria-labelledby="admin-dialog-title"
           aria-describedby={description ? "admin-dialog-description" : undefined}
-          className="relative w-full max-w-sm rounded-xl border border-line bg-surface-raised p-6 shadow-xl"
+          className="relative w-full max-w-md rounded-2xl border border-line bg-surface-raised p-6 shadow-console-xl"
         >
-          <div className="flex items-start gap-3">
-            {destructive ? (
-              <AlertTriangle
-                size={18}
-                aria-hidden
-                className="mt-0.5 shrink-0 text-critical"
-              />
-            ) : null}
-            <div>
+          <div className="flex items-start gap-3.5">
+            <span
+              aria-hidden
+              className={cn(
+                "grid h-10 w-10 shrink-0 place-items-center rounded-xl",
+                destructive
+                  ? "bg-critical/10 text-critical"
+                  : "bg-accent-wash text-accent",
+              )}
+            >
+              <AlertTriangle size={18} />
+            </span>
+            <div className="min-w-0 pt-1">
               <h2
                 id="admin-dialog-title"
                 className="text-base font-semibold text-fg"
@@ -550,7 +753,7 @@ export function AdminDialog({
               {description ? (
                 <p
                   id="admin-dialog-description"
-                  className="mt-2 text-sm text-fg-muted"
+                  className="mt-2 text-sm leading-relaxed text-fg-muted"
                 >
                   {description}
                 </p>
@@ -574,7 +777,7 @@ export function AdminDialog({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-md text-fg-subtle transition-colors hover:bg-surface hover:text-fg"
+            className="absolute right-3 top-3 grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-fg-subtle transition-colors hover:bg-canvas hover:text-fg"
           >
             <X size={16} aria-hidden />
             <span className="sr-only">Close dialog</span>
